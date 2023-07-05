@@ -114,6 +114,8 @@ class ZoneInterface
                                                   std::string leader,
                                                   double input,
                                                   double output) = 0;
+    virtual void updateGlobalFailSafeMode(void) = 0;
+    virtual bool isAnyFailSafeMode(void) const = 0;
 };
 
 } // namespace pid_control
