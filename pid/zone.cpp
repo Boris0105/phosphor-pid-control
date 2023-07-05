@@ -578,5 +578,23 @@ void DbusPidZone::updateThermalPowerDebugInterface(std::string pidName,
         _pidsControlProcess[pidName]->input(input);
     }
 }
+void DbusPidZone::updateGlobalFailSafeMode(void)
+{
+    if (_zoneId < 32)
+    {
+        if (getFailSafeMode())
+        {
+            globalFailSafe |= 1 << _zoneId;
+        }
+        else
+        {
+            globalFailSafe &= ~(1 << _zoneId);
+        }
+    }
+}
+bool DbusPidZone::isAnyFailSafeMode(void) const
+{
+    return (globalFailSafe? true:false);
+}
 
 } // namespace pid_control

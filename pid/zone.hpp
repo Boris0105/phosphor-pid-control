@@ -124,7 +124,8 @@ class DbusPidZone : public ZoneInterface, public ModeObject
     void updateThermalPowerDebugInterface(std::string pidName,
                                           std::string leader, double input,
                                           double output) override;
-
+    void updateGlobalFailSafeMode(void) override;
+    bool isAnyFailSafeMode(void) const override;
   private:
     template <bool fanSensorLogging>
     void processSensorInputs(const std::vector<std::string>& sensorInputs,
@@ -236,6 +237,7 @@ class DbusPidZone : public ZoneInterface, public ModeObject
      * Pid fail safe Percent setting by each pid controller configuration.
      */
     std::map<std::string, double> _pidsFailSafePercent;
+    static uint32_t globalFailSafe;
 };
 
 } // namespace pid_control

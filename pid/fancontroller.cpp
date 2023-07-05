@@ -130,7 +130,12 @@ void FanController::outputProc(double value)
     /* If doing tuning, don't go into failsafe mode. */
     if (!tuningEnabled)
     {
+#ifdef TRIGGER_ALL_FAN_ZONES
+        _owner->updateGlobalFailSafeMode();
+        if (_owner->isAnyFailSafeMode())
+#else
         if (_owner->getFailSafeMode())
+#endif
         {
             double failsafePercent = _owner->getFailSafePercent();
 

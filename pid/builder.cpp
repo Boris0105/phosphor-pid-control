@@ -34,6 +34,7 @@
 #include <unordered_map>
 #include <vector>
 
+uint32_t pid_control::DbusPidZone::globalFailSafe = 0;
 namespace pid_control
 {
 
