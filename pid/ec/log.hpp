@@ -1,12 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <sstream> 
 
-enum LogLevel {
-    DEBUG,
-    INFO,
-    WARNING,
-    ERROR
-};
-
-void log(LogLevel level, const std::string& msg, const void* pointer = nullptr, double value = 0.0);
+template <typename... Args>
+void log(const std::string& msg, Args... args);
