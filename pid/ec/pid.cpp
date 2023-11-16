@@ -15,7 +15,7 @@
  */
 
 #include "pid.hpp"
-
+#include "log.hpp"
 #include "../tuning.hpp"
 #include "logging.hpp"
 
@@ -48,7 +48,8 @@ static double clamp(double x, double min, double max)
 double pid(pid_info_t* pidinfoptr, double input, double setpoint,
            const std::string* nameptr)
 {
-    if (nameptr)
+
+	if (nameptr)
     {
         if (!(pidinfoptr->initialized))
         {
@@ -56,7 +57,10 @@ double pid(pid_info_t* pidinfoptr, double input, double setpoint,
         }
     }
 
-    auto logPtr = nameptr ? LogPeek(*nameptr) : nullptr;
+
+    Log({"PID function called : ", "- Name =", nameptr->c_str(), "- Input =", std::to_string(input).c_str(), "- Setpoint =", std::to_string(setpoint).c_str()});
+
+	auto logPtr = nameptr ? LogPeek(*nameptr) : nullptr;
 
     PidCoreContext coreContext;
     std::chrono::milliseconds msNow;
@@ -116,7 +120,18 @@ double pid(pid_info_t* pidinfoptr, double input, double setpoint,
 
     output = proportionalTerm + integralTerm + derivativeTerm + feedFwdTerm;
 
-    coreContext.output1 = output;
+    Log({"PID calculation output : ", " error =", std::to_string(error).c_str(), \
+    " kp = ", std::to_string(pidinfoptr->proportionalCoeff).c_str(), \
+    " ki =", std::to_string(pidinfoptr->integralCoeff).c_str(), \
+    " kd = ", std::to_string(pidinfoptr->derivativeCoeff).c_str(), \
+    " proportionalTerm = ", std::to_string(proportionalTerm).c_str(), \
+    " integralTerm - earlier = ", std::to_string(pidinfoptr->integral).c_str(), \
+    " integralTerm - after = ", std::to_string(integralTerm).c_str(), \
+    " derivativeTerm = ", std::to_string(derivativeTerm).c_str(), \
+    " feedFwdTerm = ", std::to_string(feedFwdTerm).c_str(), \
+    " output = ", std::to_string(output).c_str()});
+
+	coreContext.output1 = output;
 
     output = clamp(output, pidinfoptr->outLim.min, pidinfoptr->outLim.max);
 
@@ -185,7 +200,7 @@ double pid(pid_info_t* pidinfoptr, double input, double setpoint,
     {
         LogContext(*logPtr, msNow, coreContext);
     }
-
+    Log({" final output = " , std::to_string(output).c_str()});
     return output;
 }
 

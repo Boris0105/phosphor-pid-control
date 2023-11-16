@@ -125,10 +125,12 @@ void DbusPidZone::addSetPoint(double setPoint, const std::string& name)
      * if there are multiple thermal controllers with the same
      * value, pick the first one in the iterator
      */
+	std::cout << " Setpoint: " << setPoint << ", Name: " << name << std::endl;
     if (_maximumSetPoint < setPoint)
     {
         _maximumSetPoint = setPoint;
         _maximumSetPointName = name;
+		std::cout << " _maximumSetPoint: " << setPoint << ", _maximumSetPointName " << name << std::endl;
     }
 }
 
@@ -450,9 +452,33 @@ void DbusPidZone::dumpCache(void)
     }
 }
 
+void DbusPidZone::printSensorInputs(const std::vector<std::string>& sensorInputs, std::chrono::high_resolution_clock::time_point now) {
+    for (const auto& sensorInput : sensorInputs)
+    {
+        auto sensor = _mgr.getSensor(sensorInput);
+        ReadReturn r = sensor->read();
+        int64_t timeout = sensor->getTimeout();
+        std::chrono::high_resolution_clock::time_point then = r.updated;
+
+        auto duration = std::chrono::duration_cast<std::chrono::seconds>(now - then).count();
+        auto period = std::chrono::seconds(timeout).count();
+
+
+        std::cout << "Value: " << r.value << ", Unscaled: " << r.unscaled << std::endl;
+        if (0)
+        {
+            std::cout << "duration: " << duration << " period: " << period << std::endl;
+        }
+    }
+}
+
+
 void DbusPidZone::processFans(void)
 {
-    for (auto& p : _fans)
+	// const auto now = std::chrono::high_resolution_clock::now();
+	// printSensorInputs(_fanInputs, now);
+
+for (auto& p : _fans)
     {
         p->process();
     }

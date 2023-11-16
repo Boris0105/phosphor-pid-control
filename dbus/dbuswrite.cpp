@@ -15,17 +15,16 @@
 */
 
 #include "dbuswrite.hpp"
-
 #include "dbushelper_interface.hpp"
-
+#include "pid/ec/log.hpp"
 #include <phosphor-logging/log.hpp>
 #include <sdbusplus/bus.hpp>
-
 #include <exception>
 #include <iostream>
 #include <memory>
 #include <string>
 #include <variant>
+
 
 namespace pid_control
 {
@@ -54,7 +53,8 @@ std::unique_ptr<WriteInterface> DbusWritePercent::createDbusWrite(
 
 void DbusWritePercent::write(double value)
 {
-    return write(value, false, nullptr);
+	std::cout << " dBuswrite_line57_dBus_PWM = " << value << std::endl;
+	return write(value, false, nullptr);
 }
 
 void DbusWritePercent::write(double value, bool force, int64_t* written)
@@ -124,7 +124,8 @@ std::unique_ptr<WriteInterface>
 
 void DbusWrite::write(double value)
 {
-    return write(value, false, nullptr);
+    std::cout << " dBuswrite_line127_dBus_PWM = " << value << std::endl;
+	return write(value, false, nullptr);
 }
 
 void DbusWrite::write(double value, bool force, int64_t* written)
