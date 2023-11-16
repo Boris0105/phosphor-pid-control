@@ -114,6 +114,7 @@ libswampd_sources = [
     'sensors/manager.cpp',
     'sensors/build_utils.cpp',
     'pid/ec/pid.cpp',
+    'pid/ec/log.cpp',
     'pid/ec/logging.cpp',
     'pid/ec/stepwise.cpp',
     'pid/fancontroller.cpp',

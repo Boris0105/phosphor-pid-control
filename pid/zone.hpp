@@ -91,7 +91,7 @@ class DbusPidZone : public ZoneInterface, public ModeObject
     void initializeCache(void) override;
     void setOutputCache(std::string_view, const ValueCacheEntry&) override;
     void dumpCache(void);
-
+    void printSensorInputs(const std::vector<std::string>& sensorInputs, std::chrono::high_resolution_clock::time_point now);
     void processFans(void) override;
     void processThermals(void) override;
 
