@@ -1,9 +1,17 @@
 #include "log.hpp"
 
-template <typename... Args>
-void log(const std::string& msg, Args... args) {
-    std::ostringstream oss;
-    oss << msg;
-    ((oss << " " << args), ...);
-    std::cout << oss.str() << std::endl;
+void log(const std::string& msg, ...) {
+    std::cout << msg;
+
+    va_list args;
+    va_start(args, msg);
+
+    const char* arg;
+    while ((arg = va_arg(args, const char*)) != NULL) {
+        std::cout << " " << arg;
+    }
+
+    va_end(args);
+
+    std::cout << std::endl;
 }
