@@ -450,9 +450,29 @@ void DbusPidZone::dumpCache(void)
     }
 }
 
+void DbusPidZone::printSensorInputs(const std::vector<std::string>& sensorInputs, std::chrono::high_resolution_clock::time_point now) {
+    for (const auto& sensorInput : sensorInputs)
+    {
+        auto sensor = _mgr.getSensor(sensorInput);
+        ReadReturn r = sensor->read();
+        int64_t timeout = sensor->getTimeout();
+        std::chrono::high_resolution_clock::time_point then = r.updated;
+
+        auto duration = std::chrono::duration_cast<std::chrono::seconds>(now - then).count();
+        auto period = std::chrono::seconds(timeout).count();
+
+       
+        std::cout << "Value: " << r.value << ", Unscaled: " << r.unscaled << std::endl;
+    }
+}
+
+
 void DbusPidZone::processFans(void)
 {
-    for (auto& p : _fans)
+	const auto now = std::chrono::high_resolution_clock::now();
+	printSensorInputs(_fanInputs, now);    
+	
+for (auto& p : _fans)
     {
         p->process();
     }
