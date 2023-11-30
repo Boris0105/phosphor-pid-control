@@ -16,7 +16,6 @@
 
 #include "dbuswrite.hpp"
 #include "dbushelper_interface.hpp"
-#include "pid/ec/log.hpp"
 #include <phosphor-logging/log.hpp>
 #include <sdbusplus/bus.hpp>
 #include <exception>
@@ -54,7 +53,7 @@ std::unique_ptr<WriteInterface> DbusWritePercent::createDbusWrite(
 void DbusWritePercent::write(double value)
 {
     
-	log("dBuswrite_line57_dBus_PWM : ", std::to_string(value).c_str());
+	std::cout << " dBuswrite_line57_dBus_PWM = " << value << std::endl;
 	return write(value, false, nullptr);
 }
 
@@ -125,7 +124,7 @@ std::unique_ptr<WriteInterface>
 
 void DbusWrite::write(double value)
 {
-    log("dBuswrite_line29_dBus_PWM : ", std::to_string(value).c_str());
+    std::cout << " dBuswrite_line127_dBus_PWM = " << value << std::endl;
 	return write(value, false, nullptr);
 }
 
