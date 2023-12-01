@@ -125,10 +125,12 @@ void DbusPidZone::addSetPoint(double setPoint, const std::string& name)
      * if there are multiple thermal controllers with the same
      * value, pick the first one in the iterator
      */
+	std::cout << " Setpoint: " << setPoint << ", Name: " << name << std::endl; 
     if (_maximumSetPoint < setPoint)
     {
         _maximumSetPoint = setPoint;
         _maximumSetPointName = name;
+		std::cout << " _maximumSetPoint: " << setPoint << ", _maximumSetPointName " << name << std::endl; 
     }
 }
 
