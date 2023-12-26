@@ -25,6 +25,7 @@ typedef struct
     double integral;          // integral of error
     double lastOutput;        // value of last output
     double lastError;         // value of last error
+	double lastError2;		  // The error in the last two steps
 
     double proportionalCoeff; // coeff for P
     double integralCoeff;     // coeff for I

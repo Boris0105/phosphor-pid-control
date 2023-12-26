@@ -48,7 +48,7 @@ static double clamp(double x, double min, double max)
 double pid(pid_info_t* pidinfoptr, double input, double setpoint,
            const std::string* nameptr)
 {
-
+    
 	if (nameptr)
     {
         if (!(pidinfoptr->initialized))
@@ -56,10 +56,10 @@ double pid(pid_info_t* pidinfoptr, double input, double setpoint,
             LogInit(*nameptr, pidinfoptr);
         }
     }
-
-
-    Log({"PID function called : ", "- Name =", nameptr->c_str(), "- Input =", std::to_string(input).c_str(), "- Setpoint =", std::to_string(setpoint).c_str()});
-
+    
+	
+    log("PID function called : ", "- Name =", nameptr->c_str(), "- Input =", std::to_string(input).c_str(), "- Setpoint =", std::to_string(setpoint).c_str());
+	
 	auto logPtr = nameptr ? LogPeek(*nameptr) : nullptr;
 
     PidCoreContext coreContext;
@@ -74,7 +74,8 @@ double pid(pid_info_t* pidinfoptr, double input, double setpoint,
     coreContext.setpoint = setpoint;
 
     double error;
-
+    double lastError;
+	double lastError2;	
     double proportionalTerm;
     double integralTerm = 0.0f;
     double derivativeTerm = 0.0f;
@@ -85,8 +86,10 @@ double pid(pid_info_t* pidinfoptr, double input, double setpoint,
     // calculate P, I, D, FF
 
     // Pid
-    error = setpoint - input;
-    proportionalTerm = pidinfoptr->proportionalCoeff * error;
+    error = input - setpoint;
+	lastError = pidinfoptr->lastError;
+	lastError2= pidinfoptr->lastError2;
+    proportionalTerm = pidinfoptr->proportionalCoeff *(error - lastError);
 
     coreContext.error = error;
     coreContext.proportionalTerm = proportionalTerm;
@@ -95,20 +98,15 @@ double pid(pid_info_t* pidinfoptr, double input, double setpoint,
     // pId
     if (0.0f != pidinfoptr->integralCoeff)
     {
-        integralTerm = pidinfoptr->integral;
-        integralTerm += error * pidinfoptr->integralCoeff * pidinfoptr->ts;
-
+        integralTerm = pidinfoptr->integralCoeff * error;
         coreContext.integralTerm1 = integralTerm;
-
-        integralTerm = clamp(integralTerm, pidinfoptr->integralLimit.min,
-                             pidinfoptr->integralLimit.max);
-    }
+	}
 
     coreContext.integralTerm2 = integralTerm;
 
     // piD
     derivativeTerm = pidinfoptr->derivativeCoeff *
-                     ((error - pidinfoptr->lastError) / pidinfoptr->ts);
+                     ( error - (2*lastError) + lastError2);
 
     coreContext.derivativeTerm = derivativeTerm;
 
@@ -118,21 +116,12 @@ double pid(pid_info_t* pidinfoptr, double input, double setpoint,
 
     coreContext.feedFwdTerm = feedFwdTerm;
 
-    output = proportionalTerm + integralTerm + derivativeTerm + feedFwdTerm;
-
-    Log({"PID calculation output : ", " error =", std::to_string(error).c_str(), \
-    " kp = ", std::to_string(pidinfoptr->proportionalCoeff).c_str(), \
-    " ki =", std::to_string(pidinfoptr->integralCoeff).c_str(), \
-    " kd = ", std::to_string(pidinfoptr->derivativeCoeff).c_str(), \
-    " proportionalTerm = ", std::to_string(proportionalTerm).c_str(), \
-    " integralTerm - earlier = ", std::to_string(pidinfoptr->integral).c_str(), \
-    " integralTerm - after = ", std::to_string(integralTerm).c_str(), \
-    " derivativeTerm = ", std::to_string(derivativeTerm).c_str(), \
-    " feedFwdTerm = ", std::to_string(feedFwdTerm).c_str(), \
-    " output = ", std::to_string(output).c_str()});
-
+    output = pidinfoptr->lastOutput + proportionalTerm + integralTerm + derivativeTerm + feedFwdTerm;
+   
+    log("PID calculation output : ", "last output = ", std::to_string(pidinfoptr->lastOutput).c_str() ," error =", std::to_string(error).c_str(), " kp = ", std::to_string(pidinfoptr->proportionalCoeff).c_str(), " ki =", std::to_string(pidinfoptr->integralCoeff).c_str(), "kd = ", std::to_string(pidinfoptr->derivativeCoeff).c_str(), " proportionalTerm = ", std::to_string(proportionalTerm).c_str(), " integralTerm - earlier = ", std::to_string(pidinfoptr->integral).c_str(), " integralTerm - after = ", std::to_string(integralTerm).c_str(), " derivativeTerm = ", std::to_string(derivativeTerm).c_str()," feedFwdTerm = ", std::to_string(feedFwdTerm).c_str(), " output = ", std::to_string(output).c_str());
+	
 	coreContext.output1 = output;
-
+	
     output = clamp(output, pidinfoptr->outLim.min, pidinfoptr->outLim.max);
 
     coreContext.output2 = output;
@@ -144,7 +133,8 @@ double pid(pid_info_t* pidinfoptr, double input, double setpoint,
     // TODO(aarena) - Simplify logic as Andy suggested by creating dynamic
     // outLim_min/max that are affected by slew rate control and just clamping
     // to those instead of effectively clamping twice.
-    if (pidinfoptr->initialized)
+	/***
+   if (pidinfoptr->initialized)
     {
         if (pidinfoptr->slewNeg != 0.0f)
         {
@@ -180,17 +170,16 @@ double pid(pid_info_t* pidinfoptr, double input, double setpoint,
             integralTerm = output - proportionalTerm;
         }
     }
+	***/
 
     coreContext.output3 = output;
     coreContext.integralTerm3 = integralTerm;
 
-    // Clamp again because having limited the output may result in a
-    // larger integral term
-    integralTerm = clamp(integralTerm, pidinfoptr->integralLimit.min,
-                         pidinfoptr->integralLimit.max);
+    
     pidinfoptr->integral = integralTerm;
     pidinfoptr->initialized = true;
-    pidinfoptr->lastError = error;
+	pidinfoptr->lastError2 = lastError;
+	pidinfoptr->lastError = error;
     pidinfoptr->lastOutput = output;
 
     coreContext.integralTerm = pidinfoptr->integral;
@@ -200,7 +189,7 @@ double pid(pid_info_t* pidinfoptr, double input, double setpoint,
     {
         LogContext(*logPtr, msNow, coreContext);
     }
-    Log({" final output = " , std::to_string(output).c_str()});
+    log(" final output = " , std::to_string(output).c_str())
     return output;
 }
 
