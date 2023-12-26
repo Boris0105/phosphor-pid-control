@@ -87,8 +87,10 @@ double pid(pid_info_t* pidinfoptr, double input, double setpoint,
 
     // Pid
     error = input - setpoint;
-	lastError = pidinfoptr->lastError;
-	lastError2= pidinfoptr->lastError2;
+    
+    lastError = pidinfoptr->lastError;
+    lastError2= pidinfoptr->lastError2;
+    
     proportionalTerm = pidinfoptr->proportionalCoeff *(error - lastError);
 
     coreContext.error = error;
