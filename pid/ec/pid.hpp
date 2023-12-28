@@ -40,6 +40,7 @@ typedef struct
     double slewPos;
     double positiveHysteresis;
     double negativeHysteresis;
+
 } pid_info_t;
 
 double pid(pid_info_t* pidinfoptr, double input, double setpoint,

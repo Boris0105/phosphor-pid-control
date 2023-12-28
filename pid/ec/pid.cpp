@@ -87,25 +87,27 @@ double pid(pid_info_t* pidinfoptr, double input, double setpoint,
     double integralTerm = 0.0f;
     double derivativeTerm = 0.0f;
     double feedFwdTerm = 0.0f;
-    //double upperbound = 0.0f;
-    //double bottombound = 0.0f;
     double output;
+    double GuardBand = 2.0;
+    double upperbound = 0.0f;
+    double bottombound = 0.0f;
 
 
-    //upperbound =  setpoint + pidinfoptr->positiveHysteresis;
-    //bottombound = setpoint -  pidinfoptr->negativeHysteresis;
+
+    upperbound =  setpoint + GuardBand;
+    bottombound = setpoint - GuardBand;
     // calculate P, I, D, FF
 
-    /***
+  
     if (input >upperbound) {
-       error = setpoint - upperbound;
+       error = upperbound - input;
    } else if (input < bottombound) {
-       error = setpoint - bottombound;
+       error = bottombound - input;
    } else {
        error = 0;
    };
-***/
-    error = setpoint - input;
+
+
     
     exOutput =  pidinfoptr->exOutput;
     lastError = pidinfoptr->lastError;
@@ -146,8 +148,7 @@ double pid(pid_info_t* pidinfoptr, double input, double setpoint,
     " ki =", std::to_string(pidinfoptr->integralCoeff).c_str(), \
     " kd = ", std::to_string(pidinfoptr->derivativeCoeff).c_str(), \
     " proportionalTerm = ", std::to_string(proportionalTerm).c_str(), \
-    " integralTerm - earlier = ", std::to_string(pidinfoptr->integral).c_str(), \
-    " integralTerm - after = ", std::to_string(integralTerm).c_str(), \
+    " integralTerm = ", std::to_string(integralTerm).c_str(), \
     " derivativeTerm = ", std::to_string(derivativeTerm).c_str(), \
     " feedFwdTerm = ", std::to_string(feedFwdTerm).c_str(), \
     " output = ", std::to_string(output).c_str()});
@@ -207,9 +208,8 @@ double pid(pid_info_t* pidinfoptr, double input, double setpoint,
 
     // Clamp again because having limited the output may result in a
     // larger integral term
-    integralTerm = clamp(integralTerm, pidinfoptr->integralLimit.min,
-                         pidinfoptr->integralLimit.max);
-    
+   
+
     pidinfoptr->integral = integralTerm;
     pidinfoptr->initialized = true;
     pidinfoptr->lastError2 = lastError;
