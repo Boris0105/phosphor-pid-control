@@ -50,7 +50,7 @@ double pid(pid_info_t* pidinfoptr, double input, double setpoint,
 {
 
 	
-     if(*nameptr == "Fan_Zone1")
+     if (nameptr->find("Fan_Zone") == 0)
      {
 	double output;
 	output=setpoint;
