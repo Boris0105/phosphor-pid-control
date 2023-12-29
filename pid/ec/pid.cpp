@@ -52,9 +52,9 @@ double pid(pid_info_t* pidinfoptr, double input, double setpoint,
 	
      if (nameptr->find("Fan_Zone") == 0)
      {
-	double output;
-	output=setpoint;
-	return output;
+	     double output;
+	     output=setpoint;
+	     return output;
      }
 	
 	if (nameptr)
@@ -93,7 +93,7 @@ double pid(pid_info_t* pidinfoptr, double input, double setpoint,
     double bottombound = 0.0f;
 
 
-
+	
     upperbound =  setpoint + GuardBand;
     bottombound = setpoint - GuardBand;
     // calculate P, I, D, FF
@@ -144,6 +144,8 @@ double pid(pid_info_t* pidinfoptr, double input, double setpoint,
     output = exOutput + proportionalTerm + integralTerm + derivativeTerm + feedFwdTerm;
 
     Log({"PID calculation output : ","- Name = ", nameptr->c_str(),", exOutput =",std::to_string(exOutput).c_str(),", last error = ",std::to_string(lastError).c_str()," error =", std::to_string(error).c_str(),"last2Error",std::to_string(lastError2).c_str(), \
+    " upperbound = ", std::to_string(upperbound).c_str(), \
+    " bottombound = ", std::to_string(bottombound).c_str(), \
     " kp = ", std::to_string(pidinfoptr->proportionalCoeff).c_str(), \
     " ki =", std::to_string(pidinfoptr->integralCoeff).c_str(), \
     " kd = ", std::to_string(pidinfoptr->derivativeCoeff).c_str(), \
@@ -215,6 +217,9 @@ double pid(pid_info_t* pidinfoptr, double input, double setpoint,
     pidinfoptr->lastError2 = lastError;
     pidinfoptr->lastError = error;
     pidinfoptr->exOutput = output;
+     Log({"PID error update = "," Last Error 2 =  ", std::to_string(pidinfoptr->lastError2).c_str() ," LastError = ", std::to_string(pidinfoptr->lastError).c_str(), \
+    " error = ", std::to_string(error).c_str()});
+
 
     coreContext.integralTerm = pidinfoptr->integral;
     coreContext.output = pidinfoptr->lastOutput;
@@ -223,7 +228,6 @@ double pid(pid_info_t* pidinfoptr, double input, double setpoint,
     {
         LogContext(*logPtr, msNow, coreContext);
     }
-    Log({" final output = " , std::to_string(output).c_str()});
     return output;
 }
 

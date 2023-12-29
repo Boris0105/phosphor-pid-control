@@ -63,10 +63,10 @@ struct ControllerInfo
 struct CycleTime
 {
     /* The time interval every cycle. 0.1 seconds by default */
-    uint64_t cycleIntervalTimeMS = 100; // milliseconds
+    uint64_t cycleIntervalTimeMS = 5000; // milliseconds
 
     /* The interval of updating thermals. 1 second by default */
-    uint64_t updateThermalsTimeMS = 1000; // milliseconds
+    uint64_t updateThermalsTimeMS = 5000; // milliseconds
 };
 
 /*
