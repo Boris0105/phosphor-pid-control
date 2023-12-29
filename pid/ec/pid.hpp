@@ -23,8 +23,10 @@ typedef struct
 
     double ts;                // sample time in seconds
     double integral;          // integral of error
-    double lastOutput;        // value of last output
+    double lastOutput;
+    double exOutput;          // value of last output
     double lastError;         // value of last error
+    double lastError2;	      // The error in the last two steps			      // 
 
     double proportionalCoeff; // coeff for P
     double integralCoeff;     // coeff for I
@@ -38,6 +40,7 @@ typedef struct
     double slewPos;
     double positiveHysteresis;
     double negativeHysteresis;
+
 } pid_info_t;
 
 double pid(pid_info_t* pidinfoptr, double input, double setpoint,
