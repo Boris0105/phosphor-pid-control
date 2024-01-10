@@ -1,0 +1,267 @@
+From 54f40929a55d4af474ffec3db406f00cd6f083bf Mon Sep 17 00:00:00 2001
+From: Boris <56016986+Boris0105@users.noreply.github.com>
+Date: Thu, 16 Nov 2023 11:19:45 -0800
+Subject: [PATCH] Apply Boris's debug message
+
+%% original patch: 5001-Apply-Boris-s-debug-message.patch
+---
+ dbus/dbuswrite.cpp | 11 ++++++-----
+ meson.build        |  1 +
+ pid/ec/log.cpp     | 35 +++++++++++++++++++++++++++++++++++
+ pid/ec/log.hpp     | 13 +++++++++++++
+ pid/ec/pid.cpp     | 25 ++++++++++++++++++++-----
+ pid/zone.cpp       | 28 +++++++++++++++++++++++++++-
+ pid/zone.hpp       |  2 +-
+ 7 files changed, 103 insertions(+), 12 deletions(-)
+ create mode 100644 pid/ec/log.cpp
+ create mode 100644 pid/ec/log.hpp
+
+diff --git a/dbus/dbuswrite.cpp b/dbus/dbuswrite.cpp
+index 9531546..de66ec8 100644
+--- a/dbus/dbuswrite.cpp
++++ b/dbus/dbuswrite.cpp
+@@ -15,18 +15,17 @@
+ */
+ 
+ #include "dbuswrite.hpp"
+-
+ #include "dbushelper_interface.hpp"
+-
++#include "pid/ec/log.hpp"
+ #include <phosphor-logging/log.hpp>
+ #include <sdbusplus/bus.hpp>
+-
+ #include <exception>
+ #include <iostream>
+ #include <memory>
+ #include <string>
+ #include <variant>
+ 
++
+ namespace pid_control
+ {
+ 
+@@ -54,7 +53,8 @@ std::unique_ptr<WriteInterface> DbusWritePercent::createDbusWrite(
+ 
+ void DbusWritePercent::write(double value)
+ {
+-    return write(value, false, nullptr);
++	std::cout << " dBuswrite_line57_dBus_PWM = " << value << std::endl;
++	return write(value, false, nullptr);
+ }
+ 
+ void DbusWritePercent::write(double value, bool force, int64_t* written)
+@@ -124,7 +124,8 @@ std::unique_ptr<WriteInterface>
+ 
+ void DbusWrite::write(double value)
+ {
+-    return write(value, false, nullptr);
++    std::cout << " dBuswrite_line127_dBus_PWM = " << value << std::endl;
++	return write(value, false, nullptr);
+ }
+ 
+ void DbusWrite::write(double value, bool force, int64_t* written)
+diff --git a/meson.build b/meson.build
+index dbdbf82..16e246e 100644
+--- a/meson.build
++++ b/meson.build
+@@ -114,6 +114,7 @@ libswampd_sources = [
+     'sensors/manager.cpp',
+     'sensors/build_utils.cpp',
+     'pid/ec/pid.cpp',
++    'pid/ec/log.cpp',
+     'pid/ec/logging.cpp',
+     'pid/ec/stepwise.cpp',
+     'pid/fancontroller.cpp',
+diff --git a/pid/ec/log.cpp b/pid/ec/log.cpp
+new file mode 100644
+index 0000000..5b2d708
+--- /dev/null
++++ b/pid/ec/log.cpp
+@@ -0,0 +1,35 @@
++#include "log.hpp"
++// void log(const std::string& msg, ...) {
++//     std::cout << msg;
++
++//     va_list args;
++//     va_start(args, msg);
++
++//     const char* arg;
++//     while ((arg = va_arg(args, const char*)) != NULL) {
++//         std::cout << " " << arg;
++//     }
++
++//     va_end(args);
++
++//     std::cout << std::endl;
++// }
++
++
++void log_internal([[maybe_unused]]std::ostream& stream) {
++}
++
++template <typename T, typename... Args>
++void log_internal(std::ostream& stream, const T& first, const Args&... args) {
++    stream << first << " ";
++    log_internal(stream, args...);
++}
++
++void Log(const std::initializer_list<const char*>& args) {
++    std::ostringstream oss;
++    for (const auto& arg : args) {
++        oss << arg << " ";
++    }
++    std::cout << oss.str() << std::endl;
++}
++
+diff --git a/pid/ec/log.hpp b/pid/ec/log.hpp
+new file mode 100644
+index 0000000..65c04b0
+--- /dev/null
++++ b/pid/ec/log.hpp
+@@ -0,0 +1,13 @@
++#pragma once
++
++#include <iostream>
++#include <sstream>
++#include <initializer_list>
++
++void log_internal(std::ostream& stream);
++
++template <typename T, typename... Args>
++void log_internal(std::ostream& stream, const T& first, const Args&... args);
++
++void Log(const std::initializer_list<const char*>& args);
++
+diff --git a/pid/ec/pid.cpp b/pid/ec/pid.cpp
+index 762513a..ed1370c 100644
+--- a/pid/ec/pid.cpp
++++ b/pid/ec/pid.cpp
+@@ -15,7 +15,7 @@
+  */
+ 
+ #include "pid.hpp"
+-
++#include "log.hpp"
+ #include "../tuning.hpp"
+ #include "logging.hpp"
+ 
+@@ -48,7 +48,8 @@ static double clamp(double x, double min, double max)
+ double pid(pid_info_t* pidinfoptr, double input, double setpoint,
+            const std::string* nameptr)
+ {
+-    if (nameptr)
++
++	if (nameptr)
+     {
+         if (!(pidinfoptr->initialized))
+         {
+@@ -56,7 +57,10 @@ double pid(pid_info_t* pidinfoptr, double input, double setpoint,
+         }
+     }
+ 
+-    auto logPtr = nameptr ? LogPeek(*nameptr) : nullptr;
++
++    Log({"PID function called : ", "- Name =", nameptr->c_str(), "- Input =", std::to_string(input).c_str(), "- Setpoint =", std::to_string(setpoint).c_str()});
++
++	auto logPtr = nameptr ? LogPeek(*nameptr) : nullptr;
+ 
+     PidCoreContext coreContext;
+     std::chrono::milliseconds msNow;
+@@ -116,7 +120,18 @@ double pid(pid_info_t* pidinfoptr, double input, double setpoint,
+ 
+     output = proportionalTerm + integralTerm + derivativeTerm + feedFwdTerm;
+ 
+-    coreContext.output1 = output;
++    Log({"PID calculation output : ", " error =", std::to_string(error).c_str(), \
++    " kp = ", std::to_string(pidinfoptr->proportionalCoeff).c_str(), \
++    " ki =", std::to_string(pidinfoptr->integralCoeff).c_str(), \
++    " kd = ", std::to_string(pidinfoptr->derivativeCoeff).c_str(), \
++    " proportionalTerm = ", std::to_string(proportionalTerm).c_str(), \
++    " integralTerm - earlier = ", std::to_string(pidinfoptr->integral).c_str(), \
++    " integralTerm - after = ", std::to_string(integralTerm).c_str(), \
++    " derivativeTerm = ", std::to_string(derivativeTerm).c_str(), \
++    " feedFwdTerm = ", std::to_string(feedFwdTerm).c_str(), \
++    " output = ", std::to_string(output).c_str()});
++
++	coreContext.output1 = output;
+ 
+     output = clamp(output, pidinfoptr->outLim.min, pidinfoptr->outLim.max);
+ 
+@@ -185,7 +200,7 @@ double pid(pid_info_t* pidinfoptr, double input, double setpoint,
+     {
+         LogContext(*logPtr, msNow, coreContext);
+     }
+-
++    Log({" final output = " , std::to_string(output).c_str()});
+     return output;
+ }
+ 
+diff --git a/pid/zone.cpp b/pid/zone.cpp
+index 2d873d4..aeb855a 100644
+--- a/pid/zone.cpp
++++ b/pid/zone.cpp
+@@ -125,10 +125,12 @@ void DbusPidZone::addSetPoint(double setPoint, const std::string& name)
+      * if there are multiple thermal controllers with the same
+      * value, pick the first one in the iterator
+      */
++	std::cout << " Setpoint: " << setPoint << ", Name: " << name << std::endl;
+     if (_maximumSetPoint < setPoint)
+     {
+         _maximumSetPoint = setPoint;
+         _maximumSetPointName = name;
++		std::cout << " _maximumSetPoint: " << setPoint << ", _maximumSetPointName " << name << std::endl;
+     }
+ }
+ 
+@@ -450,9 +452,33 @@ void DbusPidZone::dumpCache(void)
+     }
+ }
+ 
++void DbusPidZone::printSensorInputs(const std::vector<std::string>& sensorInputs, std::chrono::high_resolution_clock::time_point now) {
++    for (const auto& sensorInput : sensorInputs)
++    {
++        auto sensor = _mgr.getSensor(sensorInput);
++        ReadReturn r = sensor->read();
++        int64_t timeout = sensor->getTimeout();
++        std::chrono::high_resolution_clock::time_point then = r.updated;
++
++        auto duration = std::chrono::duration_cast<std::chrono::seconds>(now - then).count();
++        auto period = std::chrono::seconds(timeout).count();
++
++
++        std::cout << "Value: " << r.value << ", Unscaled: " << r.unscaled << std::endl;
++        if (0)
++        {
++            std::cout << "duration: " << duration << " period: " << period << std::endl;
++        }
++    }
++}
++
++
+ void DbusPidZone::processFans(void)
+ {
+-    for (auto& p : _fans)
++	// const auto now = std::chrono::high_resolution_clock::now();
++	// printSensorInputs(_fanInputs, now);
++
++for (auto& p : _fans)
+     {
+         p->process();
+     }
+diff --git a/pid/zone.hpp b/pid/zone.hpp
+index dc49837..4c983af 100644
+--- a/pid/zone.hpp
++++ b/pid/zone.hpp
+@@ -91,7 +91,7 @@ class DbusPidZone : public ZoneInterface, public ModeObject
+     void initializeCache(void) override;
+     void setOutputCache(std::string_view, const ValueCacheEntry&) override;
+     void dumpCache(void);
+-
++    void printSensorInputs(const std::vector<std::string>& sensorInputs, std::chrono::high_resolution_clock::time_point now);
+     void processFans(void) override;
+     void processThermals(void) override;
+ 
+-- 
+2.34.1
+

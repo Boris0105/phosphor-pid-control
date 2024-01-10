@@ -33,7 +33,7 @@
 #include <set>
 #include <unordered_map>
 #include <variant>
-
+#include <iostream>
 namespace pid_control
 {
 
@@ -390,14 +390,17 @@ void populatePidInfo(
                                       getPIDAttribute(base, "SlewNeg"));
     info.pidInfo.slewPos = std::visit(VariantToDoubleVisitor(),
                                       getPIDAttribute(base, "SlewPos"));
-
+    info.pidInfo.GuardBand = std::visit(VariantToDoubleVisitor(),
+                                      getPIDAttribute(base, "GuardBand"));
     double negativeHysteresis = 0;
     double positiveHysteresis = 0;
     double derivativeCoeff = 0;
-
+    //double GuardBand = 0;
     auto findNeg = base.find("NegativeHysteresis");
     auto findPos = base.find("PositiveHysteresis");
     auto findDerivative = base.find("DCoefficient");
+    //auto findGuardBand = base.find("GuardBand");
+
 
     if (findNeg != base.end())
     {
@@ -414,10 +417,19 @@ void populatePidInfo(
         derivativeCoeff = std::visit(VariantToDoubleVisitor(),
                                      findDerivative->second);
     }
-
+    /***
+    if (findGuardBand != base.end())
+    {
+        GuardBand = std::visit(VariantToDoubleVisitor(),
+                                     findDerivative->second);
+    }
+    ***/
     info.pidInfo.negativeHysteresis = negativeHysteresis;
     info.pidInfo.positiveHysteresis = positiveHysteresis;
     info.pidInfo.derivativeCoeff = derivativeCoeff;
+    //info.pidInfo.GuardBand = GuardBand;
+    std::cout <<" Guard Band -(dbusConf) : " << info.pidInfo.GuardBand << std::endl;
+
 }
 
 bool init(sdbusplus::bus_t& bus, boost::asio::steady_timer& timer,

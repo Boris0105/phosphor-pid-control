@@ -33,11 +33,11 @@ typedef struct
     double derivativeCoeff;   // coeff for D
     double feedFwdOffset;     // offset coeff for feed-forward term
     double feedFwdGain;       // gain for feed-forward term
-
     limits_t integralLimit;   // clamp of integral
     limits_t outLim;          // clamp of output
     double slewNeg;
     double slewPos;
+    double GuardBand;
     double positiveHysteresis;
     double negativeHysteresis;
 
@@ -54,11 +54,12 @@ struct pidinfo
     double integralCoeff;       // coeff for I
     double derivativeCoeff;     // coeff for D
     double feedFwdOffset;       // offset coeff for feed-forward term
-    double feedFwdGain;         // gain for feed-forward term
+    double feedFwdGain;    // gain for feed-forward term
     ec::limits_t integralLimit; // clamp of integral
     ec::limits_t outLim;        // clamp of output
     double slewNeg;
     double slewPos;
+    double GuardBand;
     double positiveHysteresis;
     double negativeHysteresis;
 };

@@ -88,14 +88,17 @@ double pid(pid_info_t* pidinfoptr, double input, double setpoint,
     double derivativeTerm = 0.0f;
     double feedFwdTerm = 0.0f;
     double output;
-    double GuardBand = 2.0;
+  
     double upperbound = 0.0f;
     double bottombound = 0.0f;
 
 
-	
-    upperbound =  setpoint + GuardBand;
-    bottombound = setpoint - GuardBand;
+    //GuardBand = pidinfoptr->GuardBand;	
+    
+    Log({"GuardBand =  ", std::to_string(pidinfoptr->GuardBand).c_str()});
+
+    upperbound =  setpoint + pidinfoptr->GuardBand;
+    bottombound = setpoint - pidinfoptr->GuardBand;
     // calculate P, I, D, FF
 
   
