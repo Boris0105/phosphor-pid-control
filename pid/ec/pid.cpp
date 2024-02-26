@@ -41,26 +41,30 @@ static double clamp(double x, double min, double max)
     return x;
 }
 
+
 /********************************
  *  pid code
  *  Note: Codes assumes the ts field is non-zero
  */
-double pid(pid_info_t* pidinfoptr, double input, double setpoint,
-           const std::string* nameptr)
+double pid(pid_info_t* pidinfoptr, double input, double setpoint, const std::string* nameptr)
 {
+   if (nameptr->find("Fan_Zone") == 0)
+   {
+	double output;
+	output=setpoint;
+	return output;
+   }
 
-	if (nameptr)
-    {
+   if (nameptr)
+   {
         if (!(pidinfoptr->initialized))
         {
             LogInit(*nameptr, pidinfoptr);
         }
-    }
+   }
 
 
-    Log({"PID function called : ", "- Name =", nameptr->c_str(), "- Input =", std::to_string(input).c_str(), "- Setpoint =", std::to_string(setpoint).c_str()});
-
-	auto logPtr = nameptr ? LogPeek(*nameptr) : nullptr;
+    auto logPtr = nameptr ? LogPeek(*nameptr) : nullptr;
 
     PidCoreContext coreContext;
     std::chrono::milliseconds msNow;
@@ -72,21 +76,40 @@ double pid(pid_info_t* pidinfoptr, double input, double setpoint,
 
     coreContext.input = input;
     coreContext.setpoint = setpoint;
-
-    double error;
-
-    double proportionalTerm;
+    double error = 0.0f;
+    double exOutput = 0.0f;
+    double lastError = 0.0f;
+    double lastError2  = 0.0f;
+    double proportionalTerm = 0.0f;
     double integralTerm = 0.0f;
     double derivativeTerm = 0.0f;
     double feedFwdTerm = 0.0f;
-
     double output;
+    double upperbound = 0.0f;
+    double bottombound = 0.0f;
+    bool DebugEnabled = true;
 
+    Log(DebugEnabled,{"GuardBand =  ", std::to_string(pidinfoptr->GuardBand).c_str()});
+
+    upperbound =  setpoint + pidinfoptr->GuardBand;
+    bottombound = setpoint - pidinfoptr->GuardBand;
     // calculate P, I, D, FF
 
-    // Pid
-    error = setpoint - input;
-    proportionalTerm = pidinfoptr->proportionalCoeff * error;
+
+    if (input >upperbound) {
+       error = upperbound - input;
+   } else if (input < bottombound) {
+       error = bottombound - input;
+   } else {
+       error = 0;
+   };
+
+    exOutput =  pidinfoptr->exOutput;
+    lastError = pidinfoptr->lastError;
+    lastError2= pidinfoptr->lastError2;
+
+    // proportionalTerm
+    proportionalTerm = pidinfoptr->proportionalCoeff *(error - lastError);
 
     coreContext.error = error;
     coreContext.proportionalTerm = proportionalTerm;
@@ -95,21 +118,14 @@ double pid(pid_info_t* pidinfoptr, double input, double setpoint,
     // pId
     if (0.0f != pidinfoptr->integralCoeff)
     {
-        integralTerm = pidinfoptr->integral;
-        integralTerm += error * pidinfoptr->integralCoeff * pidinfoptr->ts;
-
+        integralTerm = pidinfoptr->integralCoeff * error;
         coreContext.integralTerm1 = integralTerm;
-
-        integralTerm = clamp(integralTerm, pidinfoptr->integralLimit.min,
-                             pidinfoptr->integralLimit.max);
     }
 
     coreContext.integralTerm2 = integralTerm;
 
     // piD
-    derivativeTerm = pidinfoptr->derivativeCoeff *
-                     ((error - pidinfoptr->lastError) / pidinfoptr->ts);
-
+    derivativeTerm = pidinfoptr->derivativeCoeff *( error - (2*lastError) + lastError2);
     coreContext.derivativeTerm = derivativeTerm;
 
     // FF
@@ -118,20 +134,21 @@ double pid(pid_info_t* pidinfoptr, double input, double setpoint,
 
     coreContext.feedFwdTerm = feedFwdTerm;
 
-    output = proportionalTerm + integralTerm + derivativeTerm + feedFwdTerm;
+    output = exOutput + proportionalTerm + integralTerm + derivativeTerm + feedFwdTerm;
 
-    Log({"PID calculation output : ", " error =", std::to_string(error).c_str(), \
+    Log(DebugEnabled,{"PID calculation output : ","- Name = ", nameptr->c_str(),", exOutput =",std::to_string(exOutput).c_str(),", last error = ",std::to_string(lastError).c_str()," error =", std::to_string(error).c_str(),"last2Error",std::to_string(lastError2).c_str(), \
+    " upperbound = ", std::to_string(upperbound).c_str(), \
+    " bottombound = ", std::to_string(bottombound).c_str(), \
     " kp = ", std::to_string(pidinfoptr->proportionalCoeff).c_str(), \
     " ki =", std::to_string(pidinfoptr->integralCoeff).c_str(), \
     " kd = ", std::to_string(pidinfoptr->derivativeCoeff).c_str(), \
     " proportionalTerm = ", std::to_string(proportionalTerm).c_str(), \
-    " integralTerm - earlier = ", std::to_string(pidinfoptr->integral).c_str(), \
-    " integralTerm - after = ", std::to_string(integralTerm).c_str(), \
+    " integralTerm = ", std::to_string(integralTerm).c_str(), \
     " derivativeTerm = ", std::to_string(derivativeTerm).c_str(), \
     " feedFwdTerm = ", std::to_string(feedFwdTerm).c_str(), \
     " output = ", std::to_string(output).c_str()});
 
-	coreContext.output1 = output;
+    coreContext.output1 = output;
 
     output = clamp(output, pidinfoptr->outLim.min, pidinfoptr->outLim.max);
 
@@ -186,12 +203,15 @@ double pid(pid_info_t* pidinfoptr, double input, double setpoint,
 
     // Clamp again because having limited the output may result in a
     // larger integral term
-    integralTerm = clamp(integralTerm, pidinfoptr->integralLimit.min,
-                         pidinfoptr->integralLimit.max);
+
     pidinfoptr->integral = integralTerm;
     pidinfoptr->initialized = true;
+    pidinfoptr->lastError2 = lastError;
     pidinfoptr->lastError = error;
-    pidinfoptr->lastOutput = output;
+    pidinfoptr->exOutput = output;
+    
+    Log(DebugEnabled,{"PID error update = "," Last Error 2 =  ", std::to_string(pidinfoptr->lastError2).c_str() ," LastError = ", std::to_string(pidinfoptr->lastError).c_str(), \
+    " error = ", std::to_string(error).c_str()});
 
     coreContext.integralTerm = pidinfoptr->integral;
     coreContext.output = pidinfoptr->lastOutput;
@@ -200,7 +220,6 @@ double pid(pid_info_t* pidinfoptr, double input, double setpoint,
     {
         LogContext(*logPtr, msNow, coreContext);
     }
-    Log({" final output = " , std::to_string(output).c_str()});
     return output;
 }
 

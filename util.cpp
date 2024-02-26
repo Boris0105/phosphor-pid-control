@@ -76,6 +76,7 @@ void debugPrint(const std::map<std::string, conf::SensorConfig>& sensorConfig,
                 }
                 std::cout << ",\n";
             }
+
             std::cout << "\t\t\t}\n";
             std::cout << "\t\t\t" << pidconf.second.setpoint << ",\n";
             std::cout << "\t\t\t{" << pidconf.second.pidInfo.ts << ",\n";
@@ -85,9 +86,11 @@ void debugPrint(const std::map<std::string, conf::SensorConfig>& sensorConfig,
                       << ",\n";
             std::cout << "\t\t\t" << pidconf.second.pidInfo.feedFwdOffset
                       << ",\n";
+            std::cout << "\t\t\t" << pidconf.second.pidInfo.GuardBand
+                      << ",\n";
             std::cout << "\t\t\t" << pidconf.second.pidInfo.feedFwdGain
                       << ",\n";
-            std::cout << "\t\t\t{" << pidconf.second.pidInfo.integralLimit.min
+	    std::cout << "\t\t\t{" << pidconf.second.pidInfo.integralLimit.min
                       << "," << pidconf.second.pidInfo.integralLimit.max
                       << "},\n";
             std::cout << "\t\t\t{" << pidconf.second.pidInfo.outLim.min << ","

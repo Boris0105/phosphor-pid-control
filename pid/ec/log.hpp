@@ -1,13 +1,13 @@
 #pragma once
-
 #include <iostream>
-#include <sstream>
-#include <initializer_list>
-
-void log_internal(std::ostream& stream);
+#include <string>
+#include <cstdarg>
 
 template <typename T, typename... Args>
-void log_internal(std::ostream& stream, const T& first, const Args&... args);
+void log_internal(std::ostream& stream, const T& first, const Args&... args) {
+    stream << first << " ";
+    (void)std::initializer_list<int>{((stream << args << " "), 0)...};
+    stream << std::endl;
+}
 
-void Log(const std::initializer_list<const char*>& args);
-
+void Log(bool debugEnabled, const std::initializer_list<const char*>& args);

@@ -32,13 +32,14 @@ class PIDController : public Controller
         _pid_info.derivativeCoeff = static_cast<double>(0.0);
         _pid_info.feedFwdOffset = static_cast<double>(0.0);
         _pid_info.feedFwdGain = static_cast<double>(0.0);
-        _pid_info.integralLimit.min = static_cast<double>(0.0);
+        _pid_info.GuardBand = static_cast<double>(0.0);
+	_pid_info.integralLimit.min = static_cast<double>(0.0);
         _pid_info.integralLimit.max = static_cast<double>(0.0);
         _pid_info.outLim.min = static_cast<double>(0.0);
         _pid_info.outLim.max = static_cast<double>(0.0);
         _pid_info.slewNeg = static_cast<double>(0.0);
         _pid_info.slewPos = static_cast<double>(0.0);
-        _pid_info.negativeHysteresis = static_cast<double>(0.0);
+	_pid_info.negativeHysteresis = static_cast<double>(0.0);
         _pid_info.positiveHysteresis = static_cast<double>(0.0);
     }
 

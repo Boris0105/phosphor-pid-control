@@ -65,13 +65,14 @@ void from_json(const json& j, conf::ControllerInfo& c)
      * accordingly.
      */
     auto p = j.at("pid");
-
     auto positiveHysteresis = p.find("positiveHysteresis");
     auto negativeHysteresis = p.find("negativeHysteresis");
     auto derivativeCoeff = p.find("derivativeCoeff");
+    auto GuardBand = p.find("GuardBand");
     auto positiveHysteresisValue = 0.0;
     auto negativeHysteresisValue = 0.0;
     auto derivativeCoeffValue = 0.0;
+    auto GuardBandValue = 0.0;
     if (positiveHysteresis != p.end())
     {
         positiveHysteresis->get_to(positiveHysteresisValue);
@@ -83,6 +84,10 @@ void from_json(const json& j, conf::ControllerInfo& c)
     if (derivativeCoeff != p.end())
     {
         derivativeCoeff->get_to(derivativeCoeffValue);
+    }
+    if (GuardBand != p.end())
+    {
+        GuardBand->get_to(GuardBandValue);
     }
 
     auto failSafePercent = j.find("FailSafePercent");
@@ -100,6 +105,7 @@ void from_json(const json& j, conf::ControllerInfo& c)
         p.at("integralCoeff").get_to(c.pidInfo.integralCoeff);
         p.at("feedFwdOffsetCoeff").get_to(c.pidInfo.feedFwdOffset);
         p.at("feedFwdGainCoeff").get_to(c.pidInfo.feedFwdGain);
+	p.at("GuardBand").get_to(c.pidInfo.GuardBand);
         p.at("integralLimit_min").get_to(c.pidInfo.integralLimit.min);
         p.at("integralLimit_max").get_to(c.pidInfo.integralLimit.max);
         p.at("outLim_min").get_to(c.pidInfo.outLim.min);
@@ -113,6 +119,7 @@ void from_json(const json& j, conf::ControllerInfo& c)
         c.pidInfo.positiveHysteresis = positiveHysteresisValue;
         c.pidInfo.negativeHysteresis = negativeHysteresisValue;
         c.pidInfo.derivativeCoeff = derivativeCoeffValue;
+	c.pidInfo.GuardBand = GuardBandValue;
     }
     else
     {

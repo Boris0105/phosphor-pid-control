@@ -32,6 +32,7 @@ void initializePIDStruct(ec::pid_info_t* info, const ec::pidinfo& initial)
     info->derivativeCoeff = initial.derivativeCoeff;
     info->feedFwdOffset = initial.feedFwdOffset;
     info->feedFwdGain = initial.feedFwdGain;
+    info->GuardBand = initial.GuardBand;
     info->integralLimit.min = initial.integralLimit.min;
     info->integralLimit.max = initial.integralLimit.max;
     info->outLim.min = initial.outLim.min;
@@ -50,7 +51,8 @@ void dumpPIDStruct(ec::pid_info_t* info)
               << " derivativeCoeff: " << info->derivativeCoeff
               << " feedFwdOffset: " << info->feedFwdOffset
               << " feedFwdGain: " << info->feedFwdGain
-              << " integralLimit.min: " << info->integralLimit.min
+              << " GuardBand: " << info->GuardBand
+	      << " integralLimit.min: " << info->integralLimit.min
               << " integralLimit.max: " << info->integralLimit.max
               << " outLim.min: " << info->outLim.min
               << " outLim.max: " << info->outLim.max

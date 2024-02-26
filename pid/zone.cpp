@@ -494,7 +494,7 @@ void DbusPidZone::processThermals(void)
 {
     for (auto& p : _thermals)
     {
-        p->process();
+	p->process();
     }
 }
 

@@ -20,22 +20,22 @@ typedef struct
 typedef struct
 {
     bool initialized;         // has pid been initialized
-
     double ts;                // sample time in seconds
     double integral;          // integral of error
-    double lastOutput;        // value of last output
+    double lastOutput;
+    double exOutput;          // value of last output
     double lastError;         // value of last error
-
+    double lastError2;	      // The error in the last two steps
     double proportionalCoeff; // coeff for P
     double integralCoeff;     // coeff for I
-    double derivativeCoeff;   // coeff for D
+    double derivativeCoeff;   // coeff for D		      //
     double feedFwdOffset;     // offset coeff for feed-forward term
     double feedFwdGain;       // gain for feed-forward term
-
     limits_t integralLimit;   // clamp of integral
     limits_t outLim;          // clamp of output
     double slewNeg;
     double slewPos;
+    double GuardBand;
     double positiveHysteresis;
     double negativeHysteresis;
 } pid_info_t;
@@ -51,11 +51,12 @@ struct pidinfo
     double integralCoeff;       // coeff for I
     double derivativeCoeff;     // coeff for D
     double feedFwdOffset;       // offset coeff for feed-forward term
-    double feedFwdGain;         // gain for feed-forward term
+    double feedFwdGain;    // gain for feed-forward term
     ec::limits_t integralLimit; // clamp of integral
     ec::limits_t outLim;        // clamp of output
     double slewNeg;
     double slewPos;
+    double GuardBand;
     double positiveHysteresis;
     double negativeHysteresis;
 };

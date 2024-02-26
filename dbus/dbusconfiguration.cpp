@@ -24,7 +24,6 @@
 #include <sdbusplus/bus.hpp>
 #include <sdbusplus/bus/match.hpp>
 #include <sdbusplus/exception.hpp>
-
 #include <algorithm>
 #include <chrono>
 #include <functional>
@@ -33,7 +32,7 @@
 #include <set>
 #include <unordered_map>
 #include <variant>
-
+#include <iostream>
 namespace pid_control
 {
 
@@ -390,14 +389,15 @@ void populatePidInfo(
                                       getPIDAttribute(base, "SlewNeg"));
     info.pidInfo.slewPos = std::visit(VariantToDoubleVisitor(),
                                       getPIDAttribute(base, "SlewPos"));
-
+    info.pidInfo.GuardBand = std::visit(VariantToDoubleVisitor(),
+                                      getPIDAttribute(base, "GuardBand"));
     double negativeHysteresis = 0;
     double positiveHysteresis = 0;
     double derivativeCoeff = 0;
-
     auto findNeg = base.find("NegativeHysteresis");
     auto findPos = base.find("PositiveHysteresis");
     auto findDerivative = base.find("DCoefficient");
+
 
     if (findNeg != base.end())
     {
